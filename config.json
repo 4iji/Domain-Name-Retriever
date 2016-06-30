@@ -1,8 +1,9 @@
 {
-	"phantomJSPath":"../phantomjs",
+	"phantomJSPath":"../../phantomjs",
 	"limit":{
 		"google":5,
 		"angel":6,
-		"linkedin":5
+		"linkedin":5,
+		"siftery":10
 	}
 }
