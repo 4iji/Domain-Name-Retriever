@@ -1,7 +1,7 @@
 #Domain Name Retrival using Neural Network
 The Aim of this project is to predict the domain (website) name, given the name of the company.
 
-*Input*: Company Name
+*Input*: Company Name<br>
 *Output*: Domain of the company.
 
 examples:
@@ -35,7 +35,7 @@ These functions make use of a parsing library in Python, Beautiful Soup and Phan
 ###Neural Network
 A neural network (actually a single neuron) was used for training and testing. It has 3 input connections and a single output connection. It follows a backpropogation mecahnism to obtain the weights of the synapse. The input to this network is a custom dictionary which has list of candidate websites as the "key" and a list of similarity scores obtained by that website in Siftery,Google and Linkedin Respectively.
 
-[Reference](http://iamtrask.github.io/2015/07/12/basic-python-network/)
+[Reference](http://iamtrask.github.io/2015/07/12/basic-python-network/)<br>
 *Currently the data is being trained through a logical matrix, which gives more weight to Linkedin Results > Siftery Results > Google Results
 ##TODO
 - To modify google results to be more rich
