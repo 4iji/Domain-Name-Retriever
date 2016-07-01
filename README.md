@@ -35,7 +35,7 @@ These functions make use of a parsing library in Python, Beautiful Soup and Phan
 ###Neural Network
 A neural network (actually a single neuron) was used for training and testing. It has 3 input connections and a single output connection. It follows a backpropogation mecahnism to obtain the weights of the synapse. The input to this network is a custom dictionary which has list of candidate websites as the "key" and a list of similarity scores obtained by that website in Siftery,Google and Linkedin Respectively. The nonlinear function used 
 
-[Reference](http://iamtrask.github.io/2015/07/12/basic-python-network/)<br>
+Reference : [http://iamtrask.github.io/2015/07/12/basic-python-network/](http://iamtrask.github.io/2015/07/12/basic-python-network/)<br>
 *Currently the data is being trained through a logical matrix, which gives more weight to Linkedin Results > Siftery Results > Google Results
 ##TODO
 - To modify google results to be more rich
