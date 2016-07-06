@@ -11,9 +11,16 @@ import operator
 import json
 with open('../config.json') as config_file:    
     config = json.load(config_file)
+with open('../dataset.json') as datafile:    
+    data = json.load(datafile)
 # Similarity Score
 def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
+	
+	if (not b in a):
+		return SequenceMatcher(None, a, b).ratio()
+	else:
+		return 1
+    	
 # Construct Feature Vector
 def constructInputMatrix(sifteryResults,googleResults,linkedinResults):
 	output = defaultdict(list)
@@ -61,11 +68,14 @@ def crawlGoogle(browser,queryParam):
 	companies = soup.find_all('div',{'class':'g'})
 	output = {}
 	for company in companies:
-		link = company.find('cite').text
-		link =  link.split("//")[-1].split("/")[0]
-		title = company.find('h3',{'class':'r'}).find('a').text
-		output[link]=-1
-		output[link]=max(output[link],round(similar(title,queryParam),2))
+		try:
+			link = company.find('cite').text
+			link =  link.split("//")[-1].split("/")[0]
+			title = company.find('h3',{'class':'r'}).find('a').text
+			output[link]=-1
+			output[link]=max(output[link],round(similar(title,queryParam),2))
+		except AttributeError:
+			continue
 	return output
 #LinkedIn Crawler
 def crawlLinkedin(browser,queryParam):
@@ -77,7 +87,7 @@ def crawlLinkedin(browser,queryParam):
 	for company in companies:
 		linkedInURL = company.find('cite').text
 		linkedInURL_copy = linkedInURL
-		if linkedInURL_copy.split("//")[1].split("/")[0]=="www.linkedin.com" and linkedInURL_copy.split("//")[1].split("/")[1]=="company" :
+		if 1:
 			browser.get(str(linkedInURL))
 			newSoup = BeautifulSoup(browser.page_source,"html.parser")
 			try:
@@ -89,27 +99,44 @@ def crawlLinkedin(browser,queryParam):
 			except AttributeError:
 				continue #skip to the next loop.
 	return output
-			
+def TrainNeuralNetwork(traindata):
+	for testcase in traindata:
+		companyName = testcase["name"]
+		companyWebsite = testcase["website"]
+		sifteryVector = crawlSiftery(browser,companyName)
+		googleVector = crawlGoogle(browser,companyName)
+		linkedInVector = crawlLinkedin(browser,companyName)
+		candidates = constructInputMatrix(sifteryVector,googleVector,linkedInVector)
+		for result in candidates:
+			inputs.append(candidates[result])
+			output_row.append(round(similar(result,testcase["website"]),2))
+	outputs.append(output_row)
+	training_set_input = np.array(inputs)
+	training_set_output = np.array(outputs).T
+	neural_network = nn.NeuralNetwork()
+	neural_network.train(training_set_input, training_set_output, 100)
+	return neural_network
+
 #Main code goes here
 PHANTOMJS_PATH = config['phantomJSPath']
 browser = webdriver.PhantomJS(PHANTOMJS_PATH)
-companyName = raw_input("Please enter the name of the Company: ")
-sifteryVector = crawlSiftery(browser,companyName)
-googleVector = crawlGoogle(browser,companyName)
-linkedInVector = crawlLinkedin(browser,companyName)
-candidates = constructInputMatrix(sifteryVector,googleVector,linkedInVector)
-#Intialise a single neuron neural network.
-neural_network = nn.NeuralNetwork()
-training_set_inputs = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 1], [0, 0, 0]])
-training_set_outputs = np.array([[0, 1, 1, 0]]).T
-
-# Train the neural network using a training set.
-# Do it 10,000 times and make small adjustments each time.
-neural_network.train(training_set_inputs, training_set_outputs, 10000)
-# Test the neural network with a new situation.
-output = {}
-for result in candidates:
-	output[result] = neural_network.think(np.array(candidates[result]))
-sorted_output = sorted(output.items(), key=operator.itemgetter(1))
-print sorted_output
+traindata = data[0:20]
+testdata = data[20:40]
+inputs = [];
+outputs = [];
+output_row = []
+print "Training the Neural Network..."
+neural_network = TrainNeuralNetwork(traindata)
+for testcase in testdata:
+	companyName = testcase["name"]
+	sifteryVector = crawlSiftery(browser,companyName)
+	googleVector = crawlGoogle(browser,companyName)
+	linkedInVector = crawlLinkedin(browser,companyName)
+	candidates = constructInputMatrix(sifteryVector,googleVector,linkedInVector)
+	# Test the neural network with a new situation.
+	output = {}
+	for result in candidates:
+		output[result] = neural_network.think(np.array(candidates[result]))
+	sorted_output = sorted(output.items(), key=operator.itemgetter(1))
+	print sorted_output[-1][0]+":"+testcase["website"]
 browser.quit()
